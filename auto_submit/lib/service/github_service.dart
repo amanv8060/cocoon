@@ -37,7 +37,7 @@ class GithubService {
     return await github.repositories.compareCommits(slug, refBase, refHead);
   }
 
-  /// Removes a lable for a pull request.
+  /// Removes a label for a pull request.
   Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
     return await github.issues.removeLabelForIssue(slug, issueNumber, label);
   }

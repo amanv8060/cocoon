@@ -97,6 +97,7 @@ class ValidationService {
     for (ValidationResult result in results) {
       if (!result.result && result.action == Action.REMOVE_LABEL) {
         await gitHubService.createComment(slug, messagePullRequest.number!, result.message);
+        await gitHubService.removeLabel(slug, messagePullRequest.number!, config.autosubmitLabel);
         shouldReturn = true;
       }
     }

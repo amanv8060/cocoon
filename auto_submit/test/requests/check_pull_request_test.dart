@@ -6,6 +6,7 @@
 import 'package:auto_submit/service/config.dart';
 
 import 'package:auto_submit/service/log.dart';
+import 'package:github/hooks.dart';
 import 'package:logging/logging.dart';
 import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
@@ -384,17 +385,24 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       flutterRequest = PullRequestHelper(
-        authorAssociation: '',
-        lastCommitHash: oid,
-        lastCommitStatuses: const <StatusHelper>[
-          StatusHelper.flutterBuildSuccess,
-        ],
+          authorAssociation: '',
+          lastCommitHash: oid,
+          lastCommitStatuses: const <StatusHelper>[
+            StatusHelper.flutterBuildSuccess,
+          ],
+          reviews: [
+            PullRequestReviewHelper(authorName: "author1", state: ReviewState.PENDING, memberType: MemberType.MEMBER),
+            PullRequestReviewHelper(authorName: "author1", state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
+          ]
       );
 
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
       assert(pubsub.messagesQueue.isEmpty);
+      await checkPullRequest.get();
+      assert(pubsub.messagesQueue.isEmpty);
+      assert(pullRequest.labels == null || !pullRequest.labels!.contains(IssueLabel(name :"autosubmit")));
     });
 
     test('Removes the label for the PR with null checks and statuses', () async {
@@ -479,6 +487,7 @@ void main() {
 enum ReviewState {
   APPROVED,
   CHANGES_REQUESTED,
+  PENDING
 }
 
 enum MemberType {
